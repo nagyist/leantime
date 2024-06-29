@@ -54,6 +54,22 @@
                                     <label for="groupByProject">{!! __("label.project") !!}</label>
                                 </span>
                             </li>
+                            <li>
+                                <span class="radio">
+                                    <input type="radio"
+                                           name="groupBy"
+                                           @if($groupBy == "priority") checked='checked' @endif
+                                           value="priority" id="groupByPriority"
+                                           hx-get="{{BASE_URL}}/widgets/myToDos/get"
+                                           hx-trigger="click"
+                                           hx-target="#yourToDoContainer"
+                                           hx-swap="outerHTML"
+                                           hx-indicator="#todos .htmx-indicator"
+                                           hx-vals='{"projectFilter": {{ $projectFilter }}, "groupBy": "priority" }'
+                                    />
+                                    <label for="groupByPriority">{!! __("label.priority") !!}</label>
+                                </span>
+                            </li>
 
                         </ul>
                     </div>
@@ -125,7 +141,7 @@
                                 @if($groupBy == 'sprint')
                                     {{ explode("-", $ticketGroup["groupValue"])[1] == $project['id'] ? 'selected' : '' }}
                                     @else
-                                    {{ $_SESSION['currentProject'] == $project['id'] ? 'selected' : '' }}
+                                    {{ session("currentProject") == $project['id'] ? 'selected' : '' }}
                                     @endif
                                 >{{ $project["name"]  }}</option>
                             @endforeach
@@ -171,7 +187,7 @@
                             $ticketCreationDueDate = $ticketGroup['tickets'][0]['dateToFinish'];
                         }
 
-                        $groupProjectId = $_SESSION['currentProject'];
+                        $groupProjectId = session("currentProject");
 
                         if ($groupBy == 'project' && isset($ticketGroup['tickets'][0])) {
                             $groupProjectId = $ticketGroup['tickets'][0]['projectId'];

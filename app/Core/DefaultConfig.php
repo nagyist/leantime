@@ -173,7 +173,7 @@ class DefaultConfig
     /**
      * @var string Salting sessions. Replace with a strong password
      */
-    public string $sessionpassword = '3evBlq9zdUEuzKvVJHWWx3QzsQhturBApxwcws2m';
+    public string $sessionPassword = '3evBlq9zdUEuzKvVJHWWx3QzsQhturBApxwcws2m';
 
     /**
      * @var int How many seconds after inactivity should we logout?  28800seconds = 8hours
@@ -471,4 +471,24 @@ class DefaultConfig
      * @var string Redis URL
      */
     public string $redisUrl = '';
+
+    /**
+     * @var string trusted Proxies
+     */
+    public string $trustedProxies = '127.0.0.1,REMOTE_ADDR';
+
+    /**
+     * @var int rate limit on all requests
+     */
+    public int $ratelimitGeneral = 2000;
+
+    /**
+     * @var int rate limit on api requests
+     */
+    public int $ratelimitApi = 10;
+
+    /**
+     * @var int rate limit on auth requests
+     */
+    public int $ratelimitAuth = 20;
 }

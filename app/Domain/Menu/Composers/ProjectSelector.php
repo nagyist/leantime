@@ -4,6 +4,8 @@ namespace Leantime\Domain\Menu\Composers;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Leantime\Core\Composer;
+use Leantime\Core\Eventhelpers;
+use Leantime\Core\Events;
 use Leantime\Core\Frontcontroller as FrontcontrollerCore;
 use Leantime\Core\IncomingRequest as IncomingRequestCore;
 use Leantime\Domain\Menu\Repositories\Menu as MenuRepository;
@@ -13,6 +15,9 @@ use Leantime\Domain\Menu\Repositories\Menu as MenuRepository;
  */
 class ProjectSelector extends Composer
 {
+
+    Use Eventhelpers;
+
     public static array $views = [
         'menu::projectSelector',
     ];
@@ -56,14 +61,14 @@ class ProjectSelector extends Composer
         $projectType = '';
         $menuType = 'default';
 
-        $projectSelectFilter = $_SESSION['userdata']["projectSelectFilter"] ?? array(
+        $projectSelectFilter = session("usersettings.projectSelectFilter", array(
             "groupBy" => "structure",
             "client" => null,
-        );
+        ));
 
-        if (isset($_SESSION['userdata'])) {
+        if (session()->exists("userdata")) {
             //Getting all projects (ignoring client filter, clients are filtered on the frontend)
-            $projectVars = $this->menuService->getUserProjectList($_SESSION['userdata']['id'], $projectSelectFilter["client"]);
+            $projectVars = $this->menuService->getUserProjectList(session("userdata.id"), $projectSelectFilter["client"]);
 
             $allAssignedprojects = $projectVars['assignedProjects'];
             $allAvailableProjects  = $projectVars['availableProjects'];
@@ -85,6 +90,7 @@ class ProjectSelector extends Composer
         $projectTypeAvatars = $this->menuService->getProjectTypeAvatars();
         $projectSelectGroupOptions = $this->menuService->getProjectSelectorGroupingOptions();
 
+        $newProjectUrl = self::dispatch_filter("startSomething", "#/projects/createnew");
 
         return [
             'currentClient' => $currentClient,
@@ -110,6 +116,7 @@ class ProjectSelector extends Composer
             'projectSelectGroupOptions' => $projectSelectGroupOptions,
             'projectSelectFilter' => $projectSelectFilter,
             'clients' => $clients,
+            'startSomethingUrl' => $newProjectUrl
         ];
     }
 }

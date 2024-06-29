@@ -8,7 +8,7 @@
         @if ($menuType == 'project' || $menuType == 'default')
             <div class="head">
                 <span class="sub">{{ __("menu.current_project") }}</span><br />
-                <span class="title">{{ $_SESSION['currentProjectName'] }}</span>
+                <span class="title">{{ session("currentProjectName") }}</span>
             </div>
         @else
             <div class="projectSelectorFooter" style="border:none; border-bottom:1px solid var(--main-border-color)">
@@ -19,7 +19,7 @@
 
                 @if ($login::userIsAtLeast("manager"))
                     @dispatchEvent('beforeProjectCreateLink')
-                    <li><a href="#/projects/createnew">
+                    <li><a href="{{ $startSomethingUrl }}">
                             <span class="fancyLink">
                                 {!! __('menu.create_something_new') !!}
                             </span>
@@ -98,7 +98,7 @@
 
                 @if ($login::userIsAtLeast("manager"))
                     @dispatchEvent('beforeProjectCreateLink')
-                    <li><a href="#/projects/createnew">
+                    <li><a href="{{ $startSomethingUrl }}">
                             <span class="fancyLink">
                                 {!! __('menu.create_something_new') !!}
                             </span>

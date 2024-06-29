@@ -29,6 +29,7 @@ class Auth
         "errors.error404",
         "errors.error500",
         "api.i18n",
+        "api.static-asset",
         "calendar.ical",
         "oidc.login",
         "oidc.callback",
@@ -64,22 +65,27 @@ class Auth
     }
 
     /**
-     * Handle an incoming request
+     * Handle the request
      *
-     * @param \Closure(IncomingRequest): Response $next
-     **/
+     * @param IncomingRequest $request
+     * @param Closure $next
+     * @return Response
+     */
     public function handle(IncomingRequest $request, Closure $next): Response
     {
+
         if (in_array($this->frontController::getCurrentRoute(), $this->publicActions)) {
             return $next($request);
         }
+
+
 
         if (! $this->authService->loggedIn()) {
             return $this->redirectWithOrigin('auth.login', $request->getRequestUri()) ?: $next($request);
         }
 
         // Check if trying to access twoFA code page, or if trying to access any other action without verifying the code.
-        if ($_SESSION['userdata']['twoFAEnabled'] && ! $_SESSION['userdata']['twoFAVerified']) {
+        if (session("userdata.twoFAEnabled") && ! session("userdata.twoFAVerified")) {
             return $this->redirectWithOrigin('twoFA.verify', $_GET['redirect'] ?? "") ?: $next($request);
         }
 

@@ -26,7 +26,7 @@ class ShowMyList extends Controller
     public function init(TimesheetService $timesheetService): void
     {
         $this->timesheetService = $timesheetService;
-        $_SESSION['lastPage'] = BASE_URL . "/timesheets/showMyList";
+        session(["lastPage" => BASE_URL . "/timesheets/showMyList"]);
     }
 
     /**
@@ -49,8 +49,8 @@ class ShowMyList extends Controller
         // The front end javascript is hardcode to start the week on mondays, so we use that here too.
 
         //Get start of the week in current users timezone and then switch to UTC
-        $dateFrom = dtHelper()->userNow()->startOfMonth()->setToDbTimezone();
-        $dateTo = dtHelper()->userNow()->endOfMonth()->setToDbTimezone();
+        $dateFrom = dtHelper()->userNow()->startOfWeek(CarbonInterface::MONDAY)->setToDbTimezone();
+        $dateTo = dtHelper()->userNow()->endOfWeek()->setToDbTimezone();
 
         if (!empty($_POST['dateFrom'])) {
             $dateFrom = dtHelper()->parseUserDateTime($_POST['dateFrom'])->setToDbTimezone();
@@ -69,7 +69,7 @@ class ShowMyList extends Controller
             dateTo: $dateTo,
             projectId: -1,
             kind: $kind,
-            userId: $_SESSION['userdata']['id'],
+            userId: session("userdata.id"),
             invEmpl: 0,
             invComp: 0,
             paid: 0

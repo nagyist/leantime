@@ -4,7 +4,7 @@ namespace Leantime\Domain\Files\Repositories {
 
     use Illuminate\Contracts\Container\BindingResolutionException;
     use Leantime\Core\Db as DbCore;
-    use Leantime\Core\Fileupload as FileuploadCore;
+    use Leantime\Core\Fileupload;
     use Leantime\Domain\Users\Repositories\Users as UserRepo;
     use PDO;
 
@@ -132,7 +132,7 @@ namespace Leantime\Domain\Files\Repositories {
         {
 
             $folders = array();
-            $files = $this->getFiles($_SESSION['userdata']['id']);
+            $files = $this->getFiles(session("userdata.id"));
 
             $sql = match ($module) {
                 'ticket' => "SELECT headline as title, id FROM zp_tickets WHERE id=:moduleId LIMIT 1",
@@ -257,7 +257,7 @@ namespace Leantime\Domain\Files\Repositories {
          * @return array|false
          * @throws BindingResolutionException
          */
-        public function upload($file, $module, $moduleId): false|array
+        public function upload($file, $module, $moduleId): false|string|array
         {
 
             //Clean module mess
@@ -268,7 +268,7 @@ namespace Leantime\Domain\Files\Repositories {
                 $module = "ticket";
             }
 
-            $upload = app()->make(FileuploadCore::class);
+            $upload = app()->make(Fileupload::class);
 
             $path = $file['file']['name'];
             $ext = pathinfo($path, PATHINFO_EXTENSION);
@@ -279,7 +279,7 @@ namespace Leantime\Domain\Files\Repositories {
 
             if ($upload->error == '') {
                 //Just something unique to avoid collision in s3 (each customer has their own folder)
-                $newname = md5($_SESSION['userdata']['id'] . time());
+                $newname = md5(session("userdata.id") . time());
 
                 $upload->renameFile($newname);
 
@@ -289,7 +289,7 @@ namespace Leantime\Domain\Files\Repositories {
                         'realName'     => str_replace('.' . $ext, '', $file['file']['name']),
                         'extension' => $ext,
                         'moduleId'     => $moduleId,
-                        'userId'     => $_SESSION['userdata']['id'],
+                        'userId'     => session("userdata.id"),
                         'module'    => $module,
                         'fileId' => '',
                     );
@@ -303,6 +303,7 @@ namespace Leantime\Domain\Files\Repositories {
                         $return = false;
                     }
                 } else {
+                    error_log($upload->error);
                     return $upload->error;
                 }
             }

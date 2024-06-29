@@ -118,7 +118,7 @@ class UserInvite extends Controller
             $userInvite["status"] = "I";
             $userInvite["user"] =  $userInvite["username"];
             $userInvite["password"] = $_POST['password'];
-            $_SESSION['tempPassword'] = $_POST['password'];
+            session(["tempPassword" => $_POST['password']]);
 
             $editUser = $this->userService->editUser($userInvite, $userInvite["id"]);
 
@@ -142,12 +142,30 @@ class UserInvite extends Controller
             return FrontcontrollerCore::redirect(BASE_URL . "/auth/userInvite/" . $invitationId . "?step=3");
         }
 
-        if (isset($_POST["function"]) && isset($_POST["step"]) && $_POST["step"] == 3) {
+        if (isset($_POST["impact"]) && isset($_POST["step"]) && $_POST["step"] == 3) {
+            $userInvite = $this->authService->getUserByInviteLink($invitationId);
+
+            $challenge = $_POST["impact"];
+
+            $this->settingService->saveSetting("usersettings." . $userInvite['id'] . ".impact", $challenge);
+
+            return FrontcontrollerCore::redirect(BASE_URL . "/auth/userInvite/" . $invitationId . "?step=4");
+        }
+
+        if (isset($_POST["function"]) && isset($_POST["step"]) && $_POST["step"] == 4) {
+
             $userInvite = $this->authService->getUserByInviteLink($invitationId);
 
             $function = $_POST["function"];
 
             $this->settingService->saveSetting("usersettings." . $userInvite['id'] . ".function", $function);
+
+            return FrontcontrollerCore::redirect(BASE_URL . "/auth/userInvite/" . $invitationId . "?step=5");
+        }
+
+        if (isset($_POST["complete"]) && isset($_POST["step"]) && $_POST["step"] == 5) {
+
+            $userInvite = $this->authService->getUserByInviteLink($invitationId);
 
             $userInvite["status"] = "A";
             $userInvite["password"] = "";
@@ -160,9 +178,9 @@ class UserInvite extends Controller
                 "success",
                 "user_activated"
             );
-            $loggedIn = $this->authService->login($userInvite["username"], $_SESSION['tempPassword']);
+            $loggedIn = $this->authService->login($userInvite["username"], session("tempPassword"));
 
-            unset($_SESSION['tempPassword']);
+            session()->forget("tempPassword");
 
             self::dispatch_event("userSignUpSuccess", ['user' => $userInvite]);
 

@@ -3,6 +3,7 @@
 /**
  * menu class - Menu definitions
  */
+
 namespace Leantime\Domain\Menu\Repositories {
 
     use Leantime\Core\Environment as EnvironmentCore;
@@ -124,7 +125,6 @@ namespace Leantime\Domain\Menu\Repositories {
                         5 => ['type' => 'item', 'module' => 'plugins', 'title' => 'menu.leantime_apps', 'icon' => 'fa fa-fw fa-puzzle-piece', 'tooltip' => 'menu.leantime_apps_tooltip', 'href' => '/plugins/marketplace', 'active' => ['marketplace', 'myapps']],
                         10 => ['type' => 'item', 'module' => 'connector', 'title' => 'menu.integrations', 'icon' => 'fa fa-fw fa-circle-nodes', 'tooltip' => 'menu.connector_tooltip', 'href' => '/connector/show', 'active' => ['show']],
                         15 => ['type' => 'item', 'module' => 'setting', 'title' => 'menu.company_settings', 'icon' => 'fa fa-fw fa-cogs', 'tooltip' => 'menu.company_settings_tooltip', 'href' => '/setting/editCompanySettings', 'active' => ['editCompanySettings']],
-
                         20 => ['type' => 'item', 'module' => 'notes', 'title' => 'menu.customfields_premium', 'icon' => 'fa fa-solid fa-list', 'tooltip' => 'Custom Fields', 'href' => '/plugins/marketplace#/plugins/details/leantime_customfields', 'role' => 'editor'],
 
                     ],
@@ -144,24 +144,22 @@ namespace Leantime\Domain\Menu\Repositories {
         public function __construct(
             /** @var SettingRepository */
             private SettingRepository $settingsRepo,
-
             /** @var LanguageCore */
             private LanguageCore $language,
-
             /** @var EnvironmentCore */
             private EnvironmentCore $config,
-
             /** @var TicketService */
             private TicketService $ticketsService,
-
             /** @var AuthService */
             private AuthService $authService,
         ) {
-            if (isset($_SESSION['submenuToggle']) === false && isset($_SESSION['userdata']) === true) {
+            if (session()->exists("usersettings.submenuToggle") === false && session()->exists("userdata") === true) {
                 $setting = $this->settingsRepo;
-                $_SESSION['submenuToggle'] = unserialize(
-                    $setting->getSetting("usersetting." . $_SESSION['userdata']['id'] . ".submenuToggle")
-                );
+                session([
+                    "usersettings.submenuToggle" => unserialize(
+                        $setting->getSetting("usersetting." . session("userdata.id") . ".submenuToggle")
+                    ),
+                    ]);
             }
         }
 
@@ -199,12 +197,12 @@ namespace Leantime\Domain\Menu\Repositories {
         public function setSubmenuState(string $submenu, string $state): void
         {
 
-            if (isset($_SESSION['submenuToggle']) && is_array($_SESSION['submenuToggle']) && $submenu !== false) {
-                $_SESSION['submenuToggle'][$submenu] = $state;
+            if (session()->exists("usersettings.submenuToggle") && is_array(session("usersettings.submenuToggle")) && $submenu !== false) {
+                session(["usersettings.submenuToggle." . $submenu => $state]);
             }
 
             $setting = $this->settingsRepo;
-            $setting->saveSetting("usersetting." . $_SESSION['userdata']['id'] . ".submenuToggle", serialize($_SESSION['submenuToggle']));
+            $setting->saveSetting("usersetting." . session("userdata.id") . ".submenuToggle", serialize(session("usersettings.submenuToggle")));
         }
 
         /**
@@ -216,11 +214,11 @@ namespace Leantime\Domain\Menu\Repositories {
         public function getSubmenuState(string $submenu)
         {
             $setting = $this->settingsRepo;
-            $subStructure = $setting->getSetting("usersetting." . $_SESSION['userdata']['id'] . ".submenuToggle");
+            $subStructure = $setting->getSetting("usersetting." . session("userdata.id") . ".submenuToggle");
 
-            $_SESSION['submenuToggle'] = unserialize($subStructure);
+            session(["usersettings.submenuToggle" => unserialize($subStructure)]);
 
-            return $_SESSION['submenuToggle'][$submenu] ?? false;
+            return session("usersettings.submenuToggle." . $submenu) ?? false;
         }
 
         protected function buildMenuStructure(array $menuStructure, string $filter): array
@@ -252,14 +250,21 @@ namespace Leantime\Domain\Menu\Repositories {
         public function getMenuStructure(string $menuType = ''): array
         {
             $language = $this->language;
+            $filter = "menuStructures.$menuType";
+
+            $menuCollection =  collect($this->menuStructures)->map(
+                function ($menu) use ($menuType, $filter) {
+                    return self::dispatch_filter(
+                        $filter,
+                        $this->buildMenuStructure($menu, $filter),
+                        'getMenuStructure'
+                    );
+                }
+            )->all();
 
             $this->menuStructures = self::dispatch_filter(
                 'menuStructures',
-                collect($this->menuStructures)->map(fn ($menu, $menuType) => self::dispatch_filter(
-                    hook: $filter = "menuStructures.$menuType",
-                    payload: $this->buildMenuStructure($menu, $filter),
-                    function: 'getMenuStructure'
-                ))->all(),
+                $menuCollection,
                 ['menuType' => $menuType]
             );
 
@@ -269,15 +274,14 @@ namespace Leantime\Domain\Menu\Repositories {
 
             $menuStructure = $this->menuStructures[$menuType];
 
-            if (isset($_SESSION['submenuToggle']) === false || is_array($_SESSION['submenuToggle']) === false) {
-                $_SESSION['submenuToggle'] = array();
+            if (session()->exists("usersettings.submenuToggle") === false || is_array(session("usersettings.submenuToggle")) === false) {
+                session(["usersettings.submenuToggle" => array()]);
             }
 
             ksort($menuStructure);
 
             foreach ($menuStructure as $key => $element) {
-
-                if(isset($menuStructure[$key]['title'])){
+                if (isset($menuStructure[$key]['title'])) {
                     $menuStructure[$key]['title'] = $language->__($element['title']);
                 }
 
@@ -302,8 +306,8 @@ namespace Leantime\Domain\Menu\Repositories {
                         if ($element['visual'] == 'always') {
                             $menuStructure[$key]['visual'] = 'open';
                         } else {
-                            $submenuState = $_SESSION['submenuToggle'][$element['id']] ?? $element['visual'];
-                            $_SESSION['submenuToggle'][$element['id']] = $submenuState;
+                            $submenuState = session("usersettings.submenuToggle." . $element['id']) ?? $element['visual'];
+                            session(["usersettings.submenuToggle." . $element['id'] => $submenuState]);
                         }
                         $menuStructure[$key]['visual'] = $submenuState;
 
@@ -400,8 +404,8 @@ namespace Leantime\Domain\Menu\Repositories {
         public function getIdeaMenu(): string
         {
             $url = "/ideas/showBoards";
-            if (isset($_SESSION['lastIdeaView'])) {
-                if ($_SESSION['lastIdeaView'] == 'kanban') {
+            if (session()->exists("lastIdeaView")) {
+                if (session("lastIdeaView") == 'kanban') {
                     $url = "/ideas/advancedBoards";
                 }
             }

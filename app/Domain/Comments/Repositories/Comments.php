@@ -203,7 +203,7 @@ namespace Leantime\Domain\Comments\Repositories {
             $stmn->bindValue(':commentParent', $values['commentParent'], PDO::PARAM_INT);
             $stmn->bindValue(':text', $values['text'], PDO::PARAM_STR);
             $stmn->bindValue(':module', $module, PDO::PARAM_STR);
-            $stmn->bindValue(':date', date("Y-m-d H:i:s"), PDO::PARAM_STR);
+            $stmn->bindValue(':date', $values["date"], PDO::PARAM_STR);
             $stmn->bindValue(':status', $values['status'] ?? '', PDO::PARAM_STR);
 
             $result = $stmn->execute();
@@ -252,15 +252,13 @@ namespace Leantime\Domain\Comments\Repositories {
          */
         public function editComment($text, $id): bool
         {
-
             $sql = "UPDATE zp_comment SET text = :text WHERE id = :id";
             $stmn = $this->db->database->prepare($sql);
             $stmn->bindValue(':id', $id, PDO::PARAM_INT);
-            $stmn->bindValue(':text', $text, PDO::PARAM_INT);
+            $stmn->bindValue(':text', $text, PDO::PARAM_STR);
 
             $result = $stmn->execute();
             $stmn->closeCursor();
-
             return $result;
         }
     }

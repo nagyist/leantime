@@ -6,6 +6,8 @@ namespace Leantime\Domain\Users\Services {
     use Leantime\Core\Eventhelpers;
     use Leantime\Core\Language as LanguageCore;
     use Leantime\Core\Mailer as MailerCore;
+    use Leantime\Domain\Auth\Models\Roles;
+    use Leantime\Domain\Auth\Services\Auth;
     use Leantime\Domain\Users\Repositories\Users as UserRepository;
     use Leantime\Domain\Projects\Repositories\Projects as ProjectRepository;
     use Leantime\Domain\Clients\Repositories\Clients as ClientRepository;
@@ -160,11 +162,11 @@ namespace Leantime\Domain\Users\Services {
             $filteredInput = htmlspecialchars($setting);
             $filteredValue = htmlspecialchars($value);
 
-            $_SESSION['userdata']['settings'][$category][$filteredInput] =  $filteredValue;
+            session(["usersettings.".$category.".".$filteredInput => $filteredValue]);
 
-            $serializeSettings = serialize($_SESSION['userdata']['settings']);
+            $serializeSettings = serialize(session("usersettings"));
 
-            return $this->userRepo->patchUser($_SESSION['userdata']['id'], array("settings" => $serializeSettings));
+            return $this->userRepo->patchUser(session("userdata.id"), array("settings" => $serializeSettings));
         }
 
         /**
@@ -242,7 +244,7 @@ namespace Leantime\Domain\Users\Services {
 
             $message = sprintf(
                 $this->language->__("email_notifications.user_invite_message"),
-                $_SESSION["userdata"]["name"] ?? "Leantime",
+                session("userdata.name") ?? "Leantime",
                 $actual_link,
                 $user
             );
@@ -251,7 +253,7 @@ namespace Leantime\Domain\Users\Services {
 
             $to = array($user);
 
-            $mailer->sendMail($to, $_SESSION["userdata"]["name"] ?? "Leantime");
+            $mailer->sendMail($to, session("userdata.name") ?? "Leantime");
         }
 
 
@@ -368,6 +370,26 @@ namespace Leantime\Domain\Users\Services {
             $this->authService->setUserSession($user);
 
             self::dispatch_event("editUser", ["id" => $id, "values" => $values]);
+        }
+
+        /**
+         * Delete the user with the specified id.
+         *
+         * @param int $id The id of the user to delete.
+         * @return bool True if the user was deleted successfully, false otherwise.
+         * @throws \Exception If the user is not authorized to delete the user.
+         */
+        public function deleteUser(int $id): bool
+        {
+
+            if(Auth::userIsAtLeast(Roles::$admin, true)) {
+                $this->userRepo->deleteUser($id);
+                $this->projectRepository->deleteAllProjectRelations($id);
+                return true;
+            }
+
+            throw new \Exception("Not authorized");
+
         }
     }
 }

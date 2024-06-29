@@ -121,7 +121,7 @@
                                 </span>
                                 <span class="notificationDate">
                                     {{ format($notif['datetime'])->date() }}
-                                    {{  format($notif['datetime'])->time() }}
+                                    {{ format($notif['datetime'])->time() }}
                                 </span>
                                 <span class="notificationTitle">{!! $tpl->convertRelativePaths($notif['message']) !!}</span>
                             </a>
@@ -164,7 +164,7 @@
             data-tippy-content="{{ __('popover.my_work') }}"
         >{!! __('menu.my_work') !!}</a>
     </li>
-    @if ($login::userIsAtLeast("manager"))
+    @if ($login::userIsAtLeast("manager", true))
         <li>
             <a
                 href="{{ BASE_URL }}/setting/editCompanySettings/"

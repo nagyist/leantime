@@ -83,17 +83,17 @@ class ShowMy extends Controller
             $this->saveTimeSheet($_POST);
         }
 
-        $myTimesheets = $this->timesheetService->getWeeklyTimesheets(-1, $fromDate, $_SESSION['userdata']['id']);
+        $myTimesheets = $this->timesheetService->getWeeklyTimesheets(-1, $fromDate, session("userdata.id"));
 
         $this->tpl->assign('dateFrom', $fromDate);
         $this->tpl->assign('actKind', $kind);
         $this->tpl->assign('kind', $this->timesheetRepo->kind);
         $this->tpl->assign('allProjects', $this->projects->getUserProjects(
-            userId: $_SESSION["userdata"]["id"],
+            userId: session("userdata.id"),
             projectTypes: "project"
         ));
         $this->tpl->assign('allTickets', $this->tickets->getUsersTickets(
-            id: $_SESSION["userdata"]["id"],
+            id: session("userdata.id"),
             limit: -1
         ));
         $this->tpl->assign('allTimesheets', $myTimesheets);
@@ -129,7 +129,7 @@ class ShowMy extends Controller
                 }
 
                 $values = array(
-                    "userId" => $_SESSION["userdata"]["id"],
+                    "userId" => session("userdata.id"),
                     "ticket" => $ticketId,
                     "date" => $date,
                     "timestamp" => $timestamp,
@@ -137,13 +137,16 @@ class ShowMy extends Controller
                     "kind" => $kind,
                 );
 
-                try {
-                    $this->timesheetService->upsertTime($ticketId, $values);
-                    $this->tpl->setNotification("Timesheet saved successfully", "success", "save_timesheet");
-                } catch (\Exception $e) {
-                    $this->tpl->setNotification("Error logging time: " . $e->getMessage(), "error", "save_timesheet");
-                    error_log($e);
-                    continue;
+                //This should not be the case since we set the input to disabled, but check anyways
+                if($timestamp !== "false" && $timestamp != false) {
+                    try {
+                        $this->timesheetService->upsertTime($ticketId, $values);
+                        $this->tpl->setNotification("Timesheet saved successfully", "success", "save_timesheet");
+                    } catch (\Exception $e) {
+                        $this->tpl->setNotification("Error logging time: " . $e->getMessage(), "error", "save_timesheet");
+                        error_log($e);
+                        continue;
+                    }
                 }
             }
         }
