@@ -6,23 +6,23 @@ use Leantime\Domain\Plugins\Contracts\PluginDisplayStrategy;
 
 class MarketplacePlugin implements PluginDisplayStrategy
 {
-    public string $identifier = '';
+    public ?string $identifier = '';
 
-    public string $name = '';
+    public ?string $name = '';
 
-    public string $excerpt = '';
+    public ?string $excerpt = '';
 
-    public string $description = '';
+    public ?string $description = '';
 
-    public string $imageUrl = '';
+    public ?string $imageUrl = '';
 
-    public string $vendorDisplayName = '';
+    public ?string $vendorDisplayName = '';
 
     public int $vendorId = 0;
 
-    public string $vendorEmail = '';
+    public ?string $vendorEmail = '';
 
-    public string $marketplaceUrl = '';
+    public ?string $marketplaceUrl = '';
 
     public ?string $startingPrice = null;
 
@@ -36,17 +36,17 @@ class MarketplacePlugin implements PluginDisplayStrategy
 
     public ?int $reviewCount = null;
 
-    public string $type = 'marketplace';
+    public ?string $type = 'marketplace';
 
     public array $reviews = [];
 
-    public string $marketplaceId = '';
+    public ?string $marketplaceId = '';
 
     public array $compatibility = [];
 
-    public string $version = '';
+    public ?string $version = '';
 
-    public string $icon = '';
+    public ?string $icon = '';
 
     public array $categories = [];
 

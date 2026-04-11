@@ -128,6 +128,20 @@ class Build
         } elseif (method_exists($this->object, 'set'.$key)) {
             $property->{'set'.$key}($value);
         } else {
+            if ($value === null && property_exists($property, $key)) {
+                $reflection = new \ReflectionProperty($property, $key);
+                $type = $reflection->getType();
+                if ($type !== null && ! $type->allowsNull()) {
+                    $value = match ($type->getName()) {
+                        'string' => '',
+                        'int'    => 0,
+                        'float'  => 0.0,
+                        'bool'   => false,
+                        'array'  => [],
+                        default  => null,
+                    };
+                }
+            }
             $property->$key = $value;
         }
     }
