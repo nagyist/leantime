@@ -2218,6 +2218,43 @@ class Tickets
     }
 
     /**
+     * moveTicket - Moves a ticket from one project to another. Milestone children will be moved as well.
+     *
+     * @throws BindingResolutionException
+     *
+     * @api
+     */
+    public function moveTicket(int $id, int $projectId): bool
+    {
+        $ticket = $this->getTicket($id);
+
+        if (! $ticket) {
+            return false;
+        }
+
+        if ($ticket->type == 'milestone') {
+            $milestoneTickets = $this->getAll(['milestone' => $ticket->id]);
+            foreach ($milestoneTickets as $childTicket) {
+                $childMoved = $this->patch($childTicket['id'], [
+                    'projectId' => $projectId,
+                    'sprint' => null,
+                ]);
+
+                if (! $childMoved) {
+                    return false;
+                }
+            }
+        }
+
+        return $this->patch($ticket->id, [
+            'projectId' => $projectId,
+            'sprint' => null,
+            'dependingTicketId' => null,
+            'milestoneid' => null,
+        ]);
+    }
+
+    /**
      * @return bool|string[]
      *
      * @api

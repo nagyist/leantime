@@ -561,12 +561,18 @@ class Tickets
             });
         }
 
-        if (isset($searchCriteria['sprint']) && $searchCriteria['sprint'] > 0 && $searchCriteria['sprint'] != 'all') {
-            $sprintIds = explode(',', $searchCriteria['sprint']);
-            $query->whereIn('zp_tickets.sprint', $sprintIds);
+        if (isset($searchCriteria['sprint']) && $searchCriteria['sprint'] !== '' && $searchCriteria['sprint'] !== 'backlog') {
+            $sprintIds = array_values(array_filter(
+                array_map('trim', explode(',', (string) $searchCriteria['sprint'])),
+                static fn ($token) => ctype_digit($token) && (int) $token > 0
+            ));
+
+            if ($sprintIds !== []) {
+                $query->whereIn('zp_tickets.sprint', array_map('intval', $sprintIds));
+            }
         }
 
-        if (isset($searchCriteria['sprint']) && $searchCriteria['sprint'] == 'backlog') {
+        if (isset($searchCriteria['sprint']) && $searchCriteria['sprint'] === 'backlog') {
             $query->where(function ($q) {
                 $q->whereNull('zp_tickets.sprint')
                     ->orWhere('zp_tickets.sprint', 0)
@@ -1224,15 +1230,22 @@ class Tickets
             });
         }
 
-        if (isset($searchCriteria['sprint']) && $searchCriteria['sprint'] > 0 && $searchCriteria['sprint'] != 'all') {
-            $sprintIds = explode(',', $searchCriteria['sprint']);
-            $query->where(function ($q) use ($sprintIds) {
-                $q->whereIn('zp_tickets.sprint', $sprintIds)
-                    ->orWhere('zp_tickets.type', 'milestone');
-            });
+        if (isset($searchCriteria['sprint']) && $searchCriteria['sprint'] !== '' && $searchCriteria['sprint'] !== 'backlog') {
+            $sprintIds = array_values(array_filter(
+                array_map('trim', explode(',', (string) $searchCriteria['sprint'])),
+                static fn ($token) => ctype_digit($token) && (int) $token > 0
+            ));
+
+            if ($sprintIds !== []) {
+                $intSprintIds = array_map('intval', $sprintIds);
+                $query->where(function ($q) use ($intSprintIds) {
+                    $q->whereIn('zp_tickets.sprint', $intSprintIds)
+                        ->orWhere('zp_tickets.type', 'milestone');
+                });
+            }
         }
 
-        if (isset($searchCriteria['sprint']) && $searchCriteria['sprint'] == 'backlog') {
+        if (isset($searchCriteria['sprint']) && $searchCriteria['sprint'] === 'backlog') {
             $query->where(function ($q) {
                 $q->whereNull('zp_tickets.sprint')
                     ->orWhere('zp_tickets.sprint', 0)
