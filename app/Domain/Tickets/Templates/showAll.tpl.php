@@ -270,20 +270,20 @@ $tpl->dispatchTplEvent('filters.beforeLefthandSectionClose');
                                                                         echo "<span id='userImage".$row['id']."'><img src='".BASE_URL."/api/users?profileImage=false' width='25' style='vertical-align: middle; margin-right:5px;'/></span><span id='user".$row['id']."'>".$tpl->__('dropdown.not_assigned').'</span>';
                                                                     }
 
-                                                                    if (! empty($row['collaboratorPreview'])) {
-                                                                        echo "<span class='ticket-collaborators' style='display:inline-flex; align-items:center; margin-left:4px;'>";
+                        if (! empty($row['collaboratorPreview'])) {
+                            echo "<span class='ticket-collaborators' style='display:inline-flex; align-items:center; margin-left:4px;'>";
 
-                                                                        foreach ($row['collaboratorPreview'] as $index => $collaboratorId) {
-                                                                            $offset = $index > 0 ? 'margin-left:-8px;' : '';
-                                                                            echo "<span class='ticket-collaborator-avatar' title='".$tpl->__('label.collaborators')."' style='display:inline-flex; width:20px; height:20px; border-radius:999px; border:2px solid var(--main-background-color, #fff); overflow:hidden; ".$offset."'><img src='".BASE_URL.'/api/users?profileImage='.$collaboratorId."' width='20' height='20' style='display:block; width:20px; height:20px;'/></span>";
-                                                                        }
+                            foreach ($row['collaboratorPreview'] as $index => $collaboratorId) {
+                                $offset = $index > 0 ? 'margin-left:-8px;' : '';
+                                echo "<span class='ticket-collaborator-avatar' title='".$tpl->__('label.collaborators')."' style='display:inline-flex; width:20px; height:20px; border-radius:999px; border:2px solid var(--main-background-color, #fff); overflow:hidden; ".$offset."'><img src='".BASE_URL.'/api/users?profileImage='.$collaboratorId."' width='20' height='20' style='display:block; width:20px; height:20px;'/></span>";
+                            }
 
-                                                                        if (($row['collaboratorOverflow'] ?? 0) > 0) {
-                                                                            echo "<span class='ticket-collaborator-more' title='".$tpl->__('label.collaborators')."' style='display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 5px; margin-left:4px; border-radius:999px; background:var(--accent-color, #e9ecef); color:var(--secondary-font-color, #333); font-size:11px; line-height:20px;'>+".(int) $row['collaboratorOverflow'].'</span>';
-                                                                        }
+                            if (($row['collaboratorOverflow'] ?? 0) > 0) {
+                                echo "<span class='ticket-collaborator-more' title='".$tpl->__('label.collaborators')."' style='display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 5px; margin-left:4px; border-radius:999px; background:var(--accent-color, #e9ecef); color:var(--secondary-font-color, #333); font-size:11px; line-height:20px;'>+".(int) $row['collaboratorOverflow'].'</span>';
+                            }
 
-                                                                        echo '</span>';
-                                                                    }?>
+                            echo '</span>';
+                        }?>
                                                                 </span>
                                         &nbsp;<i class="fa fa-caret-down" aria-hidden="true"></i>
                                     </a>

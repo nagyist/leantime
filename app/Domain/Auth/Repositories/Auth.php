@@ -4,6 +4,7 @@ namespace Leantime\Domain\Auth\Repositories;
 
 use Illuminate\Database\ConnectionInterface;
 use Leantime\Core\Configuration\Environment as EnvironmentCore;
+use Leantime\Core\Db\DatabaseHelper;
 use Leantime\Core\Db\Db as DbCore;
 use Leantime\Domain\Users\Repositories\Users as UserRepository;
 
@@ -85,14 +86,18 @@ class Auth
 
     private UserRepository $userRepo;
 
+    private DatabaseHelper $dbHelper;
+
     public function __construct(
         DbCore $db,
         EnvironmentCore $config,
-        UserRepository $userRepo
+        UserRepository $userRepo,
+        DatabaseHelper $dbHelper
     ) {
         $this->db = $db->getConnection();
         $this->config = $config;
         $this->userRepo = $userRepo;
+        $this->dbHelper = $dbHelper;
     }
 
     /**
@@ -187,7 +192,7 @@ class Auth
             ->update([
                 'pwReset' => $resetLink,
                 'pwResetExpiration' => now(),
-                'pwResetCount' => $this->db->raw('COALESCE(pwResetCount, 0) + 1'),
+                'pwResetCount' => $this->db->raw('COALESCE('.$this->dbHelper->wrapColumn('pwResetCount').', 0) + 1'),
             ]) >= 0;
     }
 

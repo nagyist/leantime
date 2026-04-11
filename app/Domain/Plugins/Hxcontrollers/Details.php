@@ -32,10 +32,12 @@ class Details extends HtmxController
 
         foreach ($pluginProps as $key => $value) {
 
-            $newValue = json_decode(json: $value, flags: JSON_OBJECT_AS_ARRAY);
+            if (is_string($value)) {
+                $newValue = json_decode(json: $value, flags: JSON_OBJECT_AS_ARRAY);
 
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $value = $newValue;
+                if (json_last_error() === JSON_ERROR_NONE && $newValue !== null) {
+                    $value = $newValue;
+                }
             }
 
             $builder->set($key, $value);

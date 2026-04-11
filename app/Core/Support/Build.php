@@ -134,11 +134,11 @@ class Build
                 if ($type !== null && ! $type->allowsNull()) {
                     $value = match ($type->getName()) {
                         'string' => '',
-                        'int'    => 0,
-                        'float'  => 0.0,
-                        'bool'   => false,
-                        'array'  => [],
-                        default  => null,
+                        'int' => 0,
+                        'float' => 0.0,
+                        'bool' => false,
+                        'array' => [],
+                        default => null,
                     };
                 }
             }

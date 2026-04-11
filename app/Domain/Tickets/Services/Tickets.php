@@ -2862,7 +2862,11 @@ class Tickets
         $collaboratorsByTicket = $this->ticketRepository->getCollaboratorsByTicketIds($ticketIds);
 
         foreach ($groupedTickets as &$group) {
-            foreach (($group['items'] ?? []) as &$ticket) {
+            if (! isset($group['items']) || ! is_array($group['items'])) {
+                continue;
+            }
+
+            foreach ($group['items'] as &$ticket) {
                 $ticketId = (int) ($ticket['id'] ?? 0);
                 $editorId = (int) ($ticket['editorId'] ?? 0);
                 $collaboratorIds = $collaboratorsByTicket[$ticketId] ?? [];

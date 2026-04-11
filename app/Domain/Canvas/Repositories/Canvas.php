@@ -660,14 +660,22 @@ class Canvas
                           0
                         END)
                     ')
-                    ->whereColumn('progressSub.milestoneid', 'zp_canvas_items.milestoneId')
+                    ->whereColumn(
+                        $this->connection->raw($this->dbHelper->castAs($this->dbHelper->wrapColumn('progressSub.milestoneid'), 'text')),
+                        '=',
+                        'zp_canvas_items.milestoneId'
+                    )
                     ->where('progressSub.type', '<>', 'milestone');
             }, 'percentDone')
             ->leftJoin('zp_canvas_items as parentKPI', 'zp_canvas_items.kpi', '=', 'parentKPI.id')
             ->leftJoin('zp_canvas as board', 'board.id', '=', 'zp_canvas_items.canvasId')
             ->leftJoin('zp_canvas_items as parentGoal', 'zp_canvas_items.parent', '=', 'parentGoal.id')
             ->leftJoin('zp_tickets as progressTickets', function ($join) {
-                $join->on('progressTickets.milestoneid', '=', 'zp_canvas_items.milestoneId')
+                $join->on(
+                    $this->connection->raw($this->dbHelper->castAs($this->dbHelper->wrapColumn('progressTickets.milestoneid'), 'text')),
+                    '=',
+                    'zp_canvas_items.milestoneId'
+                )
                     ->where('progressTickets.type', '<>', 'milestone')
                     ->where('progressTickets.type', '<>', 'subtask');
             })
@@ -676,6 +684,16 @@ class Canvas
             })
             ->leftJoin('zp_user as t1', 'zp_canvas_items.author', '=', 't1.id')
             ->where('zp_canvas_items.id', $id)
+            ->groupBy([
+                'zp_canvas_items.id',
+                'board.title',
+                'parentKPI.description',
+                'parentGoal.title',
+                't1.firstname',
+                't1.lastname',
+                'milestone.headline',
+                'milestone.editTo',
+            ])
             ->first();
 
         if ($result !== null && $result->id != null) {
